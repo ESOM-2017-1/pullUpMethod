@@ -1,0 +1,58 @@
+-- @path Classes=/PullUpMethod/Classes.ecore
+
+module pullUp;
+
+create OUT: Classes from IN: Classes;
+
+helper context Classes!Class def: thereIsSuperclass(): Boolean =
+	if not self.classSuperclass.oclIsUndefined() then
+		true
+	else
+		false
+	endif;
+
+helper context Classes!Class def: isSameSuperclass(otherClass : Classes!Class): Boolean =
+	if self.classSuperclass.className.startsWith(otherClass.classSuperclass.className) then
+		true
+	else
+		false
+	endif;
+
+helper context Classes!Class def: sharedMethod(otherClass : Classes!Class): Boolean =
+	if self.classMethod.methodName.startsWith(otherClass.classMethod.methodName) then
+		true
+	else
+		false
+	endif;
+
+helper context Classes!Class def: isSuperclass(otherClass : Classes!Class): Boolean =
+	if self.classSuperclass.className.startsWith(otherClass.className) then
+		true
+	else
+		false
+	endif;
+
+helper context Classes!Class def: pull(subClassA : Classes!Class, subClassB : Classes!Class): Boolean =
+	if subClassA.thereIsSuperclass() and subClassB.thereIsSuperclass() and not self.thereIsSuperclass() then	-- Se as subclasses tẽm superclasse mas a superclasse não tem
+		subClassA.isSameSuperclass(subClassB) and subClassA.sharedMethod(subClassB)	-- Se as subclasses possuem a mesma superclasse e compartilham o mesmo método
+			-- emptyMethod : Classes!Method = self.classMethod;
+			-- self.classMethod <- subClassA.classMethod
+			-- subClassA.classMethod = emptyMethod
+			-- subClassB.classMethod = emptyMethod
+			-- TODO: Como tirar o método das subclasses e por na superclasse?
+	else
+		false
+	endif;
+
+
+
+rule PullUp {
+	from
+		subClasess: Classes!Class (subClasess.thereIsSuperclass()) -- As classes que tem superclass, no caso 2	
+	using {		
+	 	superClass: Classes!Class = (not superClass.thereIsSuperClass());	-- As classes que não tem superclass, no caso 1
+	}
+	to
+		
+		--pulled: Classes!Class (superClass.pull(subClasses))
+}
